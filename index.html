@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="baccarat-score">
+      <div class="btn_box">
+        <button class="record_btn record_p">P</button>
+        <button class="record_btn record_b">B</button>
+        <button class="record_btn record_t">T</button>
+        <button class="record_btn record_w">&#8592;</button>
+      </div>
+      <div class="score-box">
+        <div class="score-board score-set"></div>
+        <div class="score-table score-set"></div>
+      </div>
+    </div>
+    <script>
+      let boardCellLine = '';
+      let tableCellLine = '';
+      for (let i = 0; i <= 12; i++) {
+        let boardCellColumn = '';
+        let tableCellColumn = '';
+        for (let j = 0; j < 6; j++) {
+          boardCellColumn += `<li class="cell_main cell_back cell_${i}_${j}"></li>`;
+          tableCellColumn += `<li class="cell_table cell_back table_${i}_${j}"></li>`;
+        }
+        boardCellLine += `<ul class="column_main column_back column_${i}">${boardCellColumn}</ul>`;
+        tableCellLine += `<ul class="column_table column_back table_${i}">${tableCellColumn}</ul>`;
+      }
+      document.querySelector('.score-board').innerHTML = boardCellLine;
+      document.querySelector('.score-table').innerHTML = tableCellLine;
+
+      let oldBtnf;
+      let beforeClicked;
+      console.log(typeof beforeClicked);
+      let checkClickedBtn;
+      let columnIdx = 0;
+      let rowIdx = 0;
+      let rootIdx = 0;
+      let oldBtn;
+      addCell = (clickBtn, t = 0) => {
+        checkTie = () => {
+          if (t === 1) {
+            document
+              .querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx}`)
+              .insertAdjacentHTML('beforeend', `<div class='main_dot main_t'></div>`);
+          }
+        };
+        if (oldBtn === undefined) {
+          if (t === 1) {
+            document
+              .querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx}`)
+              .insertAdjacentHTML('beforeend', `<div class='main_dot main_p'></div>`);
+          } else {
+            document
+              .querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx}`)
+              .insertAdjacentHTML('beforeend', `<div class='main_dot main_${clickBtn}'></div>`);
+          }
+        }
+        if (oldBtn !== undefined) {
+          if (oldBtn !== clickBtn) {
+            rowIdx = 0;
+            rootIdx++;
+            if (document.querySelector(`.column_${rootIdx} .cell_${rootIdx}_${rowIdx}`).childElementCount != 0) {
+              rootIdx++;
+              for (
+                let i = 0;
+                document.querySelector(`.column_${rootIdx + i} .cell_${rootIdx + i}_${rowIdx}`).childElementCount != 0;
+                i++
+              ) {
+                rootIdx++;
+              }
+            }
+            columnIdx = rootIdx;
+            document
+              .querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx}`)
+              .insertAdjacentHTML('beforeend', `<div class='main_dot main_${clickBtn}'></div>`);
+          } else if (oldBtn === clickBtn) {
+            if (rowIdx < 5) {
+              if (rootIdx > 0) {
+                if (
+                  document.querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx + 1}`).childElementCount == 0
+                ) {
+                  let R_p1_C_m1 = document.querySelector(
+                    `.column_${columnIdx - 1} .cell_${columnIdx - 1}_${rowIdx + 1}`,
+                  );
+                  if (R_p1_C_m1.childElementCount != 0) {
+                    if (R_p1_C_m1.querySelector('.main_dot').classList.contains(`main_${clickBtn}`)) {
+                      columnIdx++;
+                    } else {
+                      rowIdx++;
+                    }
+                  } else {
+                    if (rowIdx <= 3) {
+                      let R_p2 = document.querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx + 2}`);
+                      if (R_p2.childElementCount != 0) {
+                        if (R_p2.querySelector('.main_dot').classList.contains(`main_${clickBtn}`)) {
+                          columnIdx++;
+                        } else {
+                          rowIdx++;
+                        }
+                      } else {
+                        rowIdx++;
+                      }
+                    } else {
+                      rowIdx++;
+                    }
+                  }
+                } else {
+                  columnIdx++;
+                }
+              } else {
+                rowIdx++;
+              }
+            } else if (rowIdx == 5) {
+              columnIdx++;
+            }
+            document
+              .querySelector(`.column_${columnIdx} .cell_${columnIdx}_${rowIdx}`)
+              .insertAdjacentHTML('beforeend', `<div class='main_dot main_${clickBtn}'></div>`);
+          }
+        }
+        checkTie();
+        oldBtn = clickBtn;
+      };
+      let recordBtn = document.querySelectorAll('.record_btn');
+      let tableColumnIdx = 0;
+      let tableRowIdx = 0;
+      let turnResult;
+      Array.from(recordBtn).forEach(e => {
+        e.addEventListener('click', () => {
+          if (e.classList.contains('record_p')) {
+            if (beforeClicked != undefined && beforeClicked != 'record_p') {
+              rowIdx = 0;
+            }
+            checkClickedBtn = 'p';
+            beforeClicked = 'record_p';
+            addCell(checkClickedBtn);
+            turnResult = 'p';
+          } else if (e.classList.contains('record_b')) {
+            if (beforeClicked != undefined && beforeClicked != 'record_b') {
+              rowIdx = 0;
+            }
+            checkClickedBtn = 'b';
+            beforeClicked = 'record_b';
+            addCell(checkClickedBtn);
+            turnResult = 'b';
+          } else if (e.classList.contains('record_t')) {
+            if (oldBtn === undefined) {
+              recentBtn = 'p';
+            } else {
+              recentBtn = oldBtn;
+            }
+            addCell(recentBtn, 1);
+            turnResult = 't';
+          }
+          document
+            .querySelector(`.table_${tableColumnIdx} .table_${tableColumnIdx}_${tableRowIdx}`)
+            .insertAdjacentHTML(
+              'beforeend',
+              `<div class='table_dot table_${turnResult}'>${turnResult.toUpperCase()}</div>`,
+            );
+          if (tableRowIdx < 5) {
+            tableRowIdx++;
+          } else {
+            tableRowIdx = 0;
+            tableColumnIdx++;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
